@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Eye, EyeOff } from 'lucide-react'; // 👁️ Using Lucide icons
 
-const backend_url = "http://localhost:7000"; // ✅ Correct backend base URL
+const backend_url = "http://localhost:7000"; // backend base URL
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -16,16 +17,12 @@ const Signup = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [serverMessage, setServerMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({ show: false, type: '', message: '' });
 
-  const passwordValidations = {
-    minLength: formData.password.length >= 8,
-    hasUpperCase: /[A-Z]/.test(formData.password),
-    hasLowerCase: /[a-z]/.test(formData.password),
-    hasNumber: /[0-9]/.test(formData.password),
-    hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password)
-  };
+  // 👁️ Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -44,14 +41,12 @@ const Signup = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Full Name validation
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     } else if (formData.fullName.trim().length < 2) {
       newErrors.fullName = 'Name must be at least 2 characters';
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -59,7 +54,6 @@ const Signup = () => {
       newErrors.email = 'Please enter a valid email';
     }
 
-    // Phone validation
     const phoneRegex = /^[\d\s\+\-()]{10,}$/;
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
@@ -67,14 +61,12 @@ const Signup = () => {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (!Object.values(passwordValidations).every(Boolean)) {
-      newErrors.password = 'Password does not meet all requirements';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
     }
 
-    // Confirm Password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
@@ -86,7 +78,7 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setServerMessage(null);
+    setPopup({ show: false, type: '', message: '' });
     const validationErrors = validateForm();
 
     if (Object.keys(validationErrors).length > 0) {
@@ -95,6 +87,7 @@ const Signup = () => {
     }
 
     try {
+      setLoading(true);
       const response = await axios.post(`${backend_url}/api/register`, {
         name: formData.fullName,
         email: formData.email,
@@ -102,25 +95,27 @@ const Signup = () => {
         phone: formData.phone
       });
 
-      if (response.status === 201 || response.data.success) {
-        setServerMessage({
-          type: 'success',
-          text: 'Account created successfully! Redirecting to sign in...'
-        });
-        setTimeout(() => navigate('/signin'), 2000);
-      } else {
-        setServerMessage({
-          type: 'error',
-          text: response.data.message || 'Something went wrong!'
-        });
-      }
+      setLoading(false);
+      setPopup({
+        show: true,
+        type: 'success',
+        message: response.data.message || 'Account created successfully!'
+      });
+
+      setTimeout(() => {
+        setPopup({ show: false, type: '', message: '' });
+        navigate('/verify');
+      }, 2000);
     } catch (error) {
-      setServerMessage({
+      setLoading(false);
+      setPopup({
+        show: true,
         type: 'error',
-        text:
+        message:
           error.response?.data?.message ||
           'Failed to connect to the server. Please try again later.'
       });
+      setTimeout(() => setPopup({ show: false, type: '', message: '' }), 3000);
     }
   };
 
@@ -145,16 +140,6 @@ const Signup = () => {
           <p className="text-gray-600 text-sm">Join us today and get started</p>
           <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full mt-4"></div>
         </div>
-
-        {serverMessage && (
-          <p
-            className={`text-sm text-center mb-4 font-medium ${
-              serverMessage.type === 'success' ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {serverMessage.text}
-          </p>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-5">
@@ -219,35 +204,41 @@ const Signup = () => {
             </div>
 
             {/* Password */}
-            <div className="group">
+            <div className="group relative">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-                placeholder="Create a strong password"
+                placeholder="Enter your password"
                 className={`w-full px-4 py-3 border-2 ${
                   errors.password ? 'border-red-500' : 'border-gray-200'
                 } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all duration-200 shadow-sm hover:shadow-md`}
               />
+              <div
+                className="absolute right-4 top-10 cursor-pointer text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                ⚡ Password must be at least 6 characters long
+              </p>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
               )}
-              {/* Password Validation UI same as your code */}
             </div>
 
             {/* Confirm Password */}
-            <div className="group">
+            <div className="group relative">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Confirm Password
               </label>
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
@@ -256,6 +247,12 @@ const Signup = () => {
                   errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
                 } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all duration-200 shadow-sm hover:shadow-md`}
               />
+              <div
+                className="absolute right-4 top-10 cursor-pointer text-gray-500 hover:text-gray-700"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </div>
               {errors.confirmPassword && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.confirmPassword}
@@ -263,12 +260,39 @@ const Signup = () => {
               )}
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-300"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-300 flex justify-center items-center"
             >
-              Create Account
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                  Creating...
+                </span>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </div>
         </form>
@@ -283,6 +307,30 @@ const Signup = () => {
           </Link>
         </p>
       </div>
+
+      {/* ✅ Popup Modal */}
+      {popup.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div
+            className={`bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm w-full transform scale-105 animate-fade-in ${
+              popup.type === 'success'
+                ? 'border-green-400'
+                : 'border-red-400'
+            } border-2`}
+          >
+            <h3
+              className={`text-xl font-semibold mb-2 ${
+                popup.type === 'success'
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              }`}
+            >
+              {popup.type === 'success' ? '✅ Success' : '❌ Error'}
+            </h3>
+            <p className="text-gray-700">{popup.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
