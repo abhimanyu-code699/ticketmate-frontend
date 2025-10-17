@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react'; // 👁️ Using Lucide icons
+import { backend_url } from '../../utils/urlConfing';
 
-const backend_url = "http://localhost:7000"; // backend base URL
 
 const Signup = () => {
   const navigate = useNavigate();

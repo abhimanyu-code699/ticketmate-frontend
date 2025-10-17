@@ -1,1 +1,1 @@
-export const frontend_url = 'http://localhost:7000';
+export const backend_url = 'http://localhost:7000';
