@@ -1,8 +1,10 @@
 import axios from "axios";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { backend_url } from "../../utils/urlConfing";
 
 const VerifyAccount = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [popup, setPopup] = useState({ message: "", type: "" }); // success or error popup
@@ -31,6 +33,10 @@ const VerifyAccount = () => {
       setTimeout(() => setShowPopup(false), 3000);
       setEmail("");
       setCode("");
+
+       if (errorMsg === "Verification code expired, register again") {
+        setTimeout(() => navigate("/"), 1500); // redirect after 1.5s
+      }
     }
   };
 
