@@ -64,7 +64,7 @@ const Signin = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${backend_url}/api/register`, {
+      const response = await axios.post(`${backend_url}/api/login`, {
         email: formData.email,
         password: formData.password
       });
@@ -73,12 +73,12 @@ const Signin = () => {
       setPopup({
         show: true,
         type: 'success',
-        message: response.data.message || 'Account created successfully!'
+        message: response.data.message || 'Logged in Successfully!'
       });
 
       setTimeout(() => {
         setPopup({ show: false, type: '', message: '' });
-        navigate('/verify');
+        navigate('/landing-page');
       }, 2000);
     } catch (error) {
       setLoading(false);
@@ -194,7 +194,7 @@ const Signin = () => {
                   Creating...
                 </span>
               ) : (
-                'Create Account'
+                'Login'
               )}
             </button>
           </div>

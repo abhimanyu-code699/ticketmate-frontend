@@ -1,6 +1,13 @@
+import axios from 'axios';
 import React, { useState } from 'react';
+import { backend_url } from '../../utils/urlConfing';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({ show: false, type: '', message: '' });
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -16,9 +23,40 @@ const Signup = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
+    try {
+      setLoading(true);
+      const response = await axios.post(`${backend_url}/api/register`,{
+        name:formData.name,
+        email:formData.email,
+        password:formData.password,
+        phone:formData.phone
+      })
+      setLoading(false);
+      setPopup({
+        show: true,
+        type: 'success',
+        message: response.data.message || 'Account created Successfully!'
+      });
+
+      setTimeout(() => {
+        setPopup({ show: false, type: '', message: '' });
+        navigate('/verify');
+      }, 2000);
+
+    } catch (error) {
+      setLoading(false);
+      setPopup({
+        show: true,
+        type: 'error',
+        message:
+          error.response?.data?.message ||
+          'Failed to connect to the server. Please try again later.'
+      });
+      setTimeout(() => setPopup({ show: false, type: '', message: '' }), 3000);
+    }
   };
 
   return (
