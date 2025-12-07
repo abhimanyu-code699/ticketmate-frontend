@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import { backend_url } from '../../utils/urlConfing';
 
-const Signin = () => {
+const Login = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -78,7 +78,7 @@ const Signin = () => {
 
       setTimeout(() => {
         setPopup({ show: false, type: '', message: '' });
-        navigate('/landing-page');
+        navigate('/dashboard');
       }, 2000);
     } catch (error) {
       setLoading(false);
@@ -203,7 +203,7 @@ const Signin = () => {
         <p className="text-center text-sm text-gray-600 mt-6">
           Don't have an account?{' '}
           <Link
-            to="/login"
+            to="/"
             className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
           >
             Sign up
@@ -234,4 +234,4 @@ const Signin = () => {
   );
 };
 
-export default Signin;
+export default Login;
