@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { backend_url } from "../../utils/urlConfing";
-import { Menu } from "lucide-react";
+import { Menu, PhoneCall } from "lucide-react";
 
 // ⭐ SAFE DATE FORMATTER
 const formatDate = (dateString) => {
@@ -66,10 +66,10 @@ const TicketHistory = () => {
       const endpoint =
         ticket.type === "uploaded"
           ? `${backend_url}/api/update-uploaded-ticket-status`
-          : `${backend_url}/api/update-getticket-status`;
+          : `${backend_url}/api/update-get-ticket-status`;
 
       const bodyPayload = {
-        ticket_id: ticket.id, // ⭐ Pass numeric ticket ID
+        ticket_id: ticket.id,
         boarding_station: ticket.boarding_station,
         destination_station: ticket.destination_station,
         departure_date: formatDate(ticket.departure_date),
@@ -137,9 +137,7 @@ const TicketHistory = () => {
         <h2 className="text-xl font-semibold p-4 border-b">Menu</h2>
         <ul className="p-4 space-y-4 text-lg">
           <li>
-            <a href="/dashboard" className="hover:text-blue-600">
-              Dashboard
-            </a>
+            <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
           </li>
           <li>
             <a href="/upload-ticket" className="hover:text-blue-600">
@@ -229,23 +227,30 @@ const TicketHistory = () => {
                 </p>
 
                 <p className="text-gray-600 mb-1">
-                  Boarding: <span className="text-gray-800">{ticket.boarding_station}</span>
+                  Boarding:{" "}
+                  <span className="text-gray-800">{ticket.boarding_station}</span>
                 </p>
 
                 <p className="text-gray-600 mb-1">
-                  Destination: <span className="text-gray-800">{ticket.destination_station}</span>
+                  Destination:{" "}
+                  <span className="text-gray-800">{ticket.destination_station}</span>
                 </p>
 
                 <p className="text-gray-600 mb-1">
-                  Departure: <span className="text-gray-800">{ticket.departure_date}</span>
+                  Departure:{" "}
+                  <span className="text-gray-800">{ticket.departure_date}</span>
                 </p>
 
                 <p className="text-gray-600 mb-1">
-                  Class: <span className="text-gray-800">{ticket.travel_class}</span>
+                  Class:{" "}
+                  <span className="text-gray-800">{ticket.travel_class}</span>
                 </p>
 
                 <p className="text-gray-600 mb-1">
-                  Status: <span className="text-gray-800 capitalize">{ticket.status}</span>
+                  Status:{" "}
+                  <span className="text-gray-800 capitalize">
+                    {ticket.status}
+                  </span>
                 </p>
 
                 {/* ⭐ SHOW MATCHED USER DETAILS IF FOUND */}
@@ -253,11 +258,25 @@ const TicketHistory = () => {
                   <div className="mt-2 p-2 bg-green-50 rounded-lg border border-green-300">
                     <p className="text-green-700 font-semibold">Matched User</p>
                     <p className="text-gray-700">
-                      Name: <span className="font-bold">{ticket.matchedUserName}</span>
+                      Name:{" "}
+                      <span className="font-bold">{ticket.matchedUserName}</span>
                     </p>
+
                     <p className="text-gray-700">
-                      Phone: <span className="font-bold">{ticket.matchedUserPhone}</span>
+                      Phone:{" "}
+                      <span className="font-bold">{ticket.matchedUserPhone}</span>
                     </p>
+
+                    {/* ⭐ CALL BUTTON ONLY IF MATCH FOUND */}
+                    <div className="mt-3 flex justify-start">
+                      <a
+                        href={`tel:${ticket.matchedUserPhone}`}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+                      >
+                        <PhoneCall size={18} />
+                        Call User
+                      </a>
+                    </div>
                   </div>
                 )}
 
